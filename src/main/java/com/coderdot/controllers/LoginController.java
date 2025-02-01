@@ -1,11 +1,11 @@
 package com.coderdot.controllers;
 
-import com.coderdot.dto.LoginRequest;
-import com.coderdot.dto.LoginResponse;
-import com.coderdot.services.jwt.CustomerServiceImpl;
-import com.coderdot.utils.JwtUtil;
-import jakarta.servlet.http.HttpServletResponse;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
@@ -16,7 +16,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
+import com.coderdot.dto.LoginRequest;
+import com.coderdot.dto.LoginResponse;
+import com.coderdot.services.jwt.CustomerServiceImpl;
+import com.coderdot.utils.JwtUtil;
 
 @RestController
 @RequestMapping("/login")
@@ -37,19 +40,36 @@ public class LoginController {
     }
 
     @PostMapping
-    public LoginResponse login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) throws IOException {
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
-        } catch (BadCredentialsException e) {
-            throw new BadCredentialsException("Incorrect email or password.");
-        } catch (DisabledException disabledException) {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND, "Customer is not activated");
-            return null;
-        }
-        final UserDetails userDetails = customerService.loadUserByUsername(loginRequest.getEmail());
-        final String jwt = jwtUtil.generateToken(userDetails.getUsername());
+            authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword())
+            );
 
-        return new LoginResponse(jwt);
+            // Load user details
+            final UserDetails userDetails = customerService.loadUserByUsername(loginRequest.getEmail());
+            final String jwt = jwtUtil.generateToken(userDetails.getUsername());
+
+            // Return success response
+            return ResponseEntity.ok(new LoginResponse(jwt));
+
+        } catch (BadCredentialsException e) {
+            // Return 401 Unauthorized with error message
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Incorrect email or password.");
+            errorResponse.put("status", HttpStatus.UNAUTHORIZED.value());
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponse);
+
+        } catch (DisabledException disabledException) {
+            // Return 403 Forbidden for disabled accounts
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("message", "Customer account is not activated.");
+            errorResponse.put("status", HttpStatus.FORBIDDEN.value());
+
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errorResponse);
+        }
     }
+
 
 }
