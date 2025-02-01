@@ -4,8 +4,16 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
-@Entity
+@Entity(name = "Singup")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class Customer {
 
     @Id
@@ -17,50 +25,29 @@ public class Customer {
     private String email;
     private String password;
     private String phone;
+    private String gender;
+    
+    private LocalDate dateOfBirth;
+    
     private String address;
-	public Long getId() {
-		return id;
-	}
-	public void setId(Long id) {
-		this.id = id;
-	}
-	public String getFirstName() {
-		return firstName;
-	}
-	public void setFirstName(String firstName) {
-		this.firstName = firstName;
-	}
-	public String getLastName() {
-		return lastName;
-	}
-	public void setLastName(String lastName) {
-		this.lastName = lastName;
-	}
-	public String getEmail() {
-		return email;
-	}
-	public void setEmail(String email) {
-		this.email = email;
-	}
-	public String getPassword() {
-		return password;
-	}
-	public void setPassword(String password) {
-		this.password = password;
-	}
-	public String getPhone() {
-		return phone;
-	}
-	public void setPhone(String phone) {
-		this.phone = phone;
-	}
-	public String getAddress() {
-		return address;
-	}
-	public void setAddress(String address) {
-		this.address = address;
-	}
+    private String city;
+    private String state;
+    private String country;
+    private String postalCode;
     
+    private LocalDateTime accountCreationDate=LocalDateTime.now();
+    private LocalDateTime lastLoginDate;
     
+    private String accountStatus; // e.g., ACTIVE, INACTIVE, SUSPENDED
+    
+    private String profilePictureUrl;
+    
+    private String preferredLanguage;
+    
+    private boolean marketingOptIn; // true if the customer has opted in for marketing emails
 
+    // You can also add relationships with other entities if needed, e.g., orders, payments, etc.
+    // Example:
+    // @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    // private List<Order> orders;
 }
